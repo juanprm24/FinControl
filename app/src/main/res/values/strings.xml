@@ -1,0 +1,47 @@
+<resources>
+    <string name="app_name">FinControl</string>
+
+    <!-- Navigation Drawer -->
+    <string name="navigation_drawer_open">Abrir menú</string>
+    <string name="navigation_drawer_close">Cerrar menú</string>
+
+    <!-- Menú -->
+    <string name="menu_inicio">Inicio</string>
+    <string name="menu_registrar">Registrar Transacción</string>
+    <string name="menu_categorias">Categorías</string>
+    <string name="menu_historial">Historial</string>
+    <string name="menu_estadisticas">Estadísticas</string>
+    <string name="menu_configuracion">Configuración</string>
+
+    <!-- Dashboard -->
+    <string name="ingresos_mes">Ingresos del Mes</string>
+    <string name="gastos_mes">Gastos del Mes</string>
+    <string name="balance">Balance</string>
+
+    <!-- Formularios -->
+    <string name="monto">Monto</string>
+    <string name="descripcion">Descripción</string>
+    <string name="fecha">Fecha</string>
+    <string name="categoria">Categoría</string>
+    <string name="tipo">Tipo</string>
+    <string name="ingreso">Ingreso</string>
+    <string name="gasto">Gasto</string>
+    <string name="guardar">Guardar</string>
+    <string name="cancelar">Cancelar</string>
+    <string name="editar">Editar</string>
+    <string name="eliminar">Eliminar</string>
+
+    <!-- Mensajes -->
+    <string name="transaccion_guardada">Transacción guardada correctamente</string>
+    <string name="transaccion_eliminada">Transacción eliminada</string>
+    <string name="categoria_guardada">Categoría guardada correctamente</string>
+    <string name="categoria_eliminada">Categoría eliminada</string>
+    <string name="error_conexion">Error de conexión con la base de datos</string>
+    <string name="campos_vacios">Por favor complete todos los campos</string>
+    <string name="confirmar_eliminar">¿Está seguro de eliminar este registro?</string>
+
+    <!-- Configuración -->
+    <string name="moneda">Moneda</string>
+    <string name="tema">Tema</string>
+    <string name="animaciones">Animaciones</string>
+</resources>

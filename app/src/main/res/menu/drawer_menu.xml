@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <group android:checkableBehavior="single">
+        <item
+            android:id="@+id/nav_inicio"
+            android:icon="@android:drawable/ic_menu_info_details"
+            android:title="@string/menu_inicio" />
+        <item
+            android:id="@+id/nav_registrar"
+            android:icon="@android:drawable/ic_menu_add"
+            android:title="@string/menu_registrar" />
+        <item
+            android:id="@+id/nav_categorias"
+            android:icon="@android:drawable/ic_menu_sort_by_size"
+            android:title="@string/menu_categorias" />
+        <item
+            android:id="@+id/nav_historial"
+            android:icon="@android:drawable/ic_menu_recent_history"
+            android:title="@string/menu_historial" />
+        <item
+            android:id="@+id/nav_estadisticas"
+            android:icon="@android:drawable/ic_menu_view"
+            android:title="@string/menu_estadisticas" />
+        <item
+            android:id="@+id/nav_configuracion"
+            android:icon="@android:drawable/ic_menu_preferences"
+            android:title="@string/menu_configuracion" />
+    </group>
+</menu>
