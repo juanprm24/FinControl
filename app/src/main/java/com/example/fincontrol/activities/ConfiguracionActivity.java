@@ -18,7 +18,6 @@ import com.example.fincontrol.R;
 public class ConfiguracionActivity extends AppCompatActivity {
 
     private Spinner spinnerMoneda;
-    private Spinner spinnerTema;
     private CheckBox checkAnimaciones;
 
     private SharedPreferences preferences;
@@ -56,7 +55,6 @@ public class ConfiguracionActivity extends AppCompatActivity {
      */
     private void inicializarVistas() {
         spinnerMoneda = findViewById(R.id.spinnerMoneda);
-        spinnerTema = findViewById(R.id.spinnerTema);
         checkAnimaciones = findViewById(R.id.checkAnimaciones);
 
         // Configurar Spinner de Moneda
@@ -77,7 +75,6 @@ public class ConfiguracionActivity extends AppCompatActivity {
                 temas
         );
         adapterTema.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        spinnerTema.setAdapter(adapterTema);
     }
 
     /**
@@ -90,7 +87,6 @@ public class ConfiguracionActivity extends AppCompatActivity {
 
         // Cargar tema
         int temaPos = preferences.getInt(KEY_TEMA, 0);
-        spinnerTema.setSelection(temaPos);
 
         // Cargar animaciones
         boolean animaciones = preferences.getBoolean(KEY_ANIMACIONES, true);
@@ -106,19 +102,6 @@ public class ConfiguracionActivity extends AppCompatActivity {
             @Override
             public void onItemSelected(android.widget.AdapterView<?> parent, android.view.View view, int position, long id) {
                 guardarPreferencia(KEY_MONEDA, position);
-            }
-
-            @Override
-            public void onNothingSelected(android.widget.AdapterView<?> parent) {
-            }
-        });
-
-        // Listener para cambio de tema
-        spinnerTema.setOnItemSelectedListener(new android.widget.AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(android.widget.AdapterView<?> parent, android.view.View view, int position, long id) {
-                guardarPreferencia(KEY_TEMA, position);
-                aplicarTema(position);
             }
 
             @Override

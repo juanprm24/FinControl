@@ -46,21 +46,6 @@
                     android:layout_marginTop="8dp"
                     android:layout_marginBottom="16dp" />
 
-                <!-- Tema -->
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/tema"
-                    android:textSize="14sp"
-                    android:textColor="@color/gris_oscuro" />
-
-                <Spinner
-                    android:id="@+id/spinnerTema"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:minHeight="48dp"
-                    android:layout_marginTop="8dp"
-                    android:layout_marginBottom="16dp" />
 
                 <!-- Animaciones -->
                 <CheckBox
@@ -115,6 +100,27 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Aplicación para gestión de finanzas personales"
+                    android:textSize="14sp"
+                    android:layout_marginTop="8dp"
+                    android:textColor="@color/gris_oscuro" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Creada por: Rodriguez Montero Juan Pablo"
+                    android:textSize="14sp"
+                    android:layout_marginTop="8dp"
+                    android:textColor="@color/gris_oscuro" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Grupo: 5IM9"
+                    android:textSize="14sp"
+                    android:layout_marginTop="8dp"
+                    android:textColor="@color/gris_oscuro" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="UA: Aplicaciones Moviles"
                     android:textSize="14sp"
                     android:layout_marginTop="8dp"
                     android:textColor="@color/gris_oscuro" />

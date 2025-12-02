@@ -2,7 +2,6 @@ package com.example.fincontrol.db;
 
 import android.util.Log;
 
-
 import com.example.fincontrol.models.Categoria;
 import com.example.fincontrol.models.Transaccion;
 
@@ -39,23 +38,27 @@ public class ConsultasSQL {
         if (conn == null) return false;
 
         String sql = "INSERT INTO categorias (nombre, tipo) VALUES (?, ?)";
+        PreparedStatement ps = null; // Se declara fuera para el bloque finally
 
         try {
-            PreparedStatement ps = conn.prepareStatement(sql);
+            ps = conn.prepareStatement(sql);
             ps.setString(1, categoria.getNombre());
             ps.setString(2, categoria.getTipo());
 
             int resultado = ps.executeUpdate();
-            ps.close();
-            conexionDB.cerrarConexion();
 
             Log.i(TAG, "Categoría insertada correctamente");
             return resultado > 0;
 
         } catch (SQLException e) {
             Log.e(TAG, "Error al insertar categoría", e);
-            conexionDB.cerrarConexion();
             return false;
+        } finally {
+            // Se cierran los recursos en el bloque finally
+            try {
+                if (ps != null) ps.close();
+            } catch (SQLException e) { /* Ignorar */ }
+            conexionDB.cerrarConexion(conn);
         }
     }
 
@@ -69,24 +72,27 @@ public class ConsultasSQL {
         if (conn == null) return false;
 
         String sql = "UPDATE categorias SET nombre = ?, tipo = ? WHERE id_categoria = ?";
+        PreparedStatement ps = null;
 
         try {
-            PreparedStatement ps = conn.prepareStatement(sql);
+            ps = conn.prepareStatement(sql);
             ps.setString(1, categoria.getNombre());
             ps.setString(2, categoria.getTipo());
             ps.setInt(3, categoria.getIdCategoria());
 
             int resultado = ps.executeUpdate();
-            ps.close();
-            conexionDB.cerrarConexion();
 
             Log.i(TAG, "Categoría actualizada correctamente");
             return resultado > 0;
 
         } catch (SQLException e) {
             Log.e(TAG, "Error al actualizar categoría", e);
-            conexionDB.cerrarConexion();
             return false;
+        } finally {
+            try {
+                if (ps != null) ps.close();
+            } catch (SQLException e) { /* Ignorar */ }
+            conexionDB.cerrarConexion(conn);
         }
     }
 
@@ -100,22 +106,25 @@ public class ConsultasSQL {
         if (conn == null) return false;
 
         String sql = "DELETE FROM categorias WHERE id_categoria = ?";
+        PreparedStatement ps = null;
 
         try {
-            PreparedStatement ps = conn.prepareStatement(sql);
+            ps = conn.prepareStatement(sql);
             ps.setInt(1, idCategoria);
 
             int resultado = ps.executeUpdate();
-            ps.close();
-            conexionDB.cerrarConexion();
 
             Log.i(TAG, "Categoría eliminada correctamente");
             return resultado > 0;
 
         } catch (SQLException e) {
             Log.e(TAG, "Error al eliminar categoría", e);
-            conexionDB.cerrarConexion();
             return false;
+        } finally {
+            try {
+                if (ps != null) ps.close();
+            } catch (SQLException e) { /* Ignorar */ }
+            conexionDB.cerrarConexion(conn);
         }
     }
 
@@ -129,10 +138,12 @@ public class ConsultasSQL {
         if (conn == null) return categorias;
 
         String sql = "SELECT * FROM categorias ORDER BY nombre";
+        Statement st = null;
+        ResultSet rs = null;
 
         try {
-            Statement st = conn.createStatement();
-            ResultSet rs = st.executeQuery(sql);
+            st = conn.createStatement();
+            rs = st.executeQuery(sql);
 
             while (rs.next()) {
                 Categoria cat = new Categoria();
@@ -142,15 +153,16 @@ public class ConsultasSQL {
                 categorias.add(cat);
             }
 
-            rs.close();
-            st.close();
-            conexionDB.cerrarConexion();
-
             Log.i(TAG, "Se obtuvieron " + categorias.size() + " categorías");
 
         } catch (SQLException e) {
             Log.e(TAG, "Error al obtener categorías", e);
-            conexionDB.cerrarConexion();
+        } finally {
+            try {
+                if (rs != null) rs.close();
+                if (st != null) st.close();
+            } catch (SQLException e) { /* Ignorar */ }
+            conexionDB.cerrarConexion(conn);
         }
 
         return categorias;
@@ -167,11 +179,13 @@ public class ConsultasSQL {
         if (conn == null) return categorias;
 
         String sql = "SELECT * FROM categorias WHERE tipo = ? ORDER BY nombre";
+        PreparedStatement ps = null;
+        ResultSet rs = null;
 
         try {
-            PreparedStatement ps = conn.prepareStatement(sql);
+            ps = conn.prepareStatement(sql);
             ps.setString(1, tipo);
-            ResultSet rs = ps.executeQuery();
+            rs = ps.executeQuery();
 
             while (rs.next()) {
                 Categoria cat = new Categoria();
@@ -181,13 +195,14 @@ public class ConsultasSQL {
                 categorias.add(cat);
             }
 
-            rs.close();
-            ps.close();
-            conexionDB.cerrarConexion();
-
         } catch (SQLException e) {
             Log.e(TAG, "Error al obtener categorías por tipo", e);
-            conexionDB.cerrarConexion();
+        } finally {
+            try {
+                if (rs != null) rs.close();
+                if (ps != null) ps.close();
+            } catch (SQLException e) { /* Ignorar */ }
+            conexionDB.cerrarConexion(conn);
         }
 
         return categorias;
@@ -206,9 +221,10 @@ public class ConsultasSQL {
 
         String sql = "INSERT INTO transacciones (monto, descripcion, fecha, tipo, id_categoria) " +
                 "VALUES (?, ?, ?, ?, ?)";
+        PreparedStatement ps = null;
 
         try {
-            PreparedStatement ps = conn.prepareStatement(sql);
+            ps = conn.prepareStatement(sql);
             ps.setDouble(1, transaccion.getMonto());
             ps.setString(2, transaccion.getDescripcion());
             ps.setTimestamp(3, new Timestamp(transaccion.getFecha().getTime()));
@@ -216,16 +232,18 @@ public class ConsultasSQL {
             ps.setInt(5, transaccion.getIdCategoria());
 
             int resultado = ps.executeUpdate();
-            ps.close();
-            conexionDB.cerrarConexion();
 
             Log.i(TAG, "Transacción insertada correctamente");
             return resultado > 0;
 
         } catch (SQLException e) {
             Log.e(TAG, "Error al insertar transacción", e);
-            conexionDB.cerrarConexion();
             return false;
+        } finally {
+            try {
+                if (ps != null) ps.close();
+            } catch (SQLException e) { /* Ignorar */ }
+            conexionDB.cerrarConexion(conn);
         }
     }
 
@@ -240,9 +258,10 @@ public class ConsultasSQL {
 
         String sql = "UPDATE transacciones SET monto = ?, descripcion = ?, fecha = ?, " +
                 "tipo = ?, id_categoria = ? WHERE id_transaccion = ?";
+        PreparedStatement ps = null;
 
         try {
-            PreparedStatement ps = conn.prepareStatement(sql);
+            ps = conn.prepareStatement(sql);
             ps.setDouble(1, transaccion.getMonto());
             ps.setString(2, transaccion.getDescripcion());
             ps.setTimestamp(3, new Timestamp(transaccion.getFecha().getTime()));
@@ -251,16 +270,18 @@ public class ConsultasSQL {
             ps.setInt(6, transaccion.getIdTransaccion());
 
             int resultado = ps.executeUpdate();
-            ps.close();
-            conexionDB.cerrarConexion();
 
             Log.i(TAG, "Transacción actualizada correctamente");
             return resultado > 0;
 
         } catch (SQLException e) {
             Log.e(TAG, "Error al actualizar transacción", e);
-            conexionDB.cerrarConexion();
             return false;
+        } finally {
+            try {
+                if (ps != null) ps.close();
+            } catch (SQLException e) { /* Ignorar */ }
+            conexionDB.cerrarConexion(conn);
         }
     }
 
@@ -274,22 +295,25 @@ public class ConsultasSQL {
         if (conn == null) return false;
 
         String sql = "DELETE FROM transacciones WHERE id_transaccion = ?";
+        PreparedStatement ps = null;
 
         try {
-            PreparedStatement ps = conn.prepareStatement(sql);
+            ps = conn.prepareStatement(sql);
             ps.setInt(1, idTransaccion);
 
             int resultado = ps.executeUpdate();
-            ps.close();
-            conexionDB.cerrarConexion();
 
             Log.i(TAG, "Transacción eliminada correctamente");
             return resultado > 0;
 
         } catch (SQLException e) {
             Log.e(TAG, "Error al eliminar transacción", e);
-            conexionDB.cerrarConexion();
             return false;
+        } finally {
+            try {
+                if (ps != null) ps.close();
+            } catch (SQLException e) { /* Ignorar */ }
+            conexionDB.cerrarConexion(conn);
         }
     }
 
@@ -306,10 +330,12 @@ public class ConsultasSQL {
                 "FROM transacciones t " +
                 "LEFT JOIN categorias c ON t.id_categoria = c.id_categoria " +
                 "ORDER BY t.fecha DESC";
+        Statement st = null;
+        ResultSet rs = null;
 
         try {
-            Statement st = conn.createStatement();
-            ResultSet rs = st.executeQuery(sql);
+            st = conn.createStatement();
+            rs = st.executeQuery(sql);
 
             while (rs.next()) {
                 Transaccion trans = new Transaccion();
@@ -323,15 +349,16 @@ public class ConsultasSQL {
                 transacciones.add(trans);
             }
 
-            rs.close();
-            st.close();
-            conexionDB.cerrarConexion();
-
             Log.i(TAG, "Se obtuvieron " + transacciones.size() + " transacciones");
 
         } catch (SQLException e) {
             Log.e(TAG, "Error al obtener transacciones", e);
-            conexionDB.cerrarConexion();
+        } finally {
+            try {
+                if (rs != null) rs.close();
+                if (st != null) st.close();
+            } catch (SQLException e) { /* Ignorar */ }
+            conexionDB.cerrarConexion(conn);
         }
 
         return transacciones;
@@ -350,22 +377,25 @@ public class ConsultasSQL {
                 "WHERE tipo = 'Ingreso' " +
                 "AND MONTH(fecha) = MONTH(CURDATE()) " +
                 "AND YEAR(fecha) = YEAR(CURDATE())";
+        Statement st = null;
+        ResultSet rs = null;
 
         try {
-            Statement st = conn.createStatement();
-            ResultSet rs = st.executeQuery(sql);
+            st = conn.createStatement();
+            rs = st.executeQuery(sql);
 
             if (rs.next()) {
                 total = rs.getDouble("total");
             }
 
-            rs.close();
-            st.close();
-            conexionDB.cerrarConexion();
-
         } catch (SQLException e) {
             Log.e(TAG, "Error al obtener ingresos del mes", e);
-            conexionDB.cerrarConexion();
+        } finally {
+            try {
+                if (rs != null) rs.close();
+                if (st != null) st.close();
+            } catch (SQLException e) { /* Ignorar */ }
+            conexionDB.cerrarConexion(conn);
         }
 
         return total;
@@ -384,22 +414,25 @@ public class ConsultasSQL {
                 "WHERE tipo = 'Gasto' " +
                 "AND MONTH(fecha) = MONTH(CURDATE()) " +
                 "AND YEAR(fecha) = YEAR(CURDATE())";
+        Statement st = null;
+        ResultSet rs = null;
 
         try {
-            Statement st = conn.createStatement();
-            ResultSet rs = st.executeQuery(sql);
+            st = conn.createStatement();
+            rs = st.executeQuery(sql);
 
             if (rs.next()) {
                 total = rs.getDouble("total");
             }
 
-            rs.close();
-            st.close();
-            conexionDB.cerrarConexion();
-
         } catch (SQLException e) {
             Log.e(TAG, "Error al obtener gastos del mes", e);
-            conexionDB.cerrarConexion();
+        } finally {
+            try {
+                if (rs != null) rs.close();
+                if (st != null) st.close();
+            } catch (SQLException e) { /* Ignorar */ }
+            conexionDB.cerrarConexion(conn);
         }
 
         return total;

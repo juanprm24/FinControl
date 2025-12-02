@@ -6,6 +6,7 @@ import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton; // Importado correctamente
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.Spinner;
@@ -34,19 +35,26 @@ public class RegistrarTransaccionActivity extends AppCompatActivity {
     private RadioButton rbIngreso, rbGasto;
     private Spinner spinnerCategoria;
     private TextView tvFechaSeleccionada;
-    private Button btnGuardar, btnCancelar, btnSeleccionarFecha;
+    private Button btnGuardar, btnCancelar;
+    private ImageButton btnSeleccionarFecha; // CORREGIDO: Declarado como ImageButton
 
     private ConsultasSQL consultasSQL;
     private List<Categoria> listaCategorias;
     private Date fechaSeleccionada;
 
-    private Transaccion transaccionEditar; // null si es nueva transacción
+    private Transaccion transaccionEditar; // Objeto para manejar la edición
     private boolean modoEdicion = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_registrar_transacciones);
+
+        // Configurar ActionBar
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+            getSupportActionBar().setTitle("Registrar Transacción");
+        }
 
         // Inicializar base de datos
         consultasSQL = new ConsultasSQL();
@@ -58,11 +66,11 @@ public class RegistrarTransaccionActivity extends AppCompatActivity {
         fechaSeleccionada = new Date();
         tvFechaSeleccionada.setText(Formatos.formatearFecha(fechaSeleccionada));
 
-        // Cargar categorías
-        cargarCategorias();
-
-        // Verificar si es modo edición
+        // Verificar si es modo edición ANTES de cargar categorías
         verificarModoEdicion();
+
+        // Cargar categorías (ya filtradas si es modo edición)
+        cargarCategorias();
 
         // Configurar listeners
         configurarListeners();
@@ -81,15 +89,19 @@ public class RegistrarTransaccionActivity extends AppCompatActivity {
         tvFechaSeleccionada = findViewById(R.id.tvFechaSeleccionada);
         btnGuardar = findViewById(R.id.btnGuardar);
         btnCancelar = findViewById(R.id.btnCancelar);
-        btnSeleccionarFecha = findViewById(R.id.btnSeleccionarFecha);
+        btnSeleccionarFecha = findViewById(R.id.btnSeleccionarFecha); // CORREGIDO
     }
 
     /**
-     * Carga las categorías desde la base de datos
+     * Carga las categorías desde la base de datos y selecciona la categoría si está en modo edición.
      */
     private void cargarCategorias() {
+        // Determinar el tipo inicial de categoría a cargar
+        String tipoInicial = modoEdicion ? transaccionEditar.getTipo() : (rbIngreso.isChecked() ? "Ingreso" : "Gasto");
+
         new Thread(() -> {
-            listaCategorias = consultasSQL.obtenerCategorias();
+            // Se usa obtenerCategoriasPorTipo para optimizar la carga inicial
+            listaCategorias = consultasSQL.obtenerCategoriasPorTipo(tipoInicial);
 
             runOnUiThread(() -> {
                 ArrayAdapter<Categoria> adapter = new ArrayAdapter<>(
@@ -99,17 +111,71 @@ public class RegistrarTransaccionActivity extends AppCompatActivity {
                 );
                 adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
                 spinnerCategoria.setAdapter(adapter);
+
+                // Si es modo edición, seleccionar la categoría correcta
+                if (modoEdicion) {
+                    seleccionarCategoriaEditada();
+                }
             });
         }).start();
     }
 
     /**
-     * Verifica si se está editando una transacción existente
+     * Selecciona la categoría en el Spinner basándose en el ID de la transacción a editar.
+     */
+    private void seleccionarCategoriaEditada() {
+        if (transaccionEditar != null && listaCategorias != null) {
+            for (int i = 0; i < listaCategorias.size(); i++) {
+                if (listaCategorias.get(i).getIdCategoria() == transaccionEditar.getIdCategoria()) {
+                    spinnerCategoria.setSelection(i);
+                    break;
+                }
+            }
+        }
+    }
+
+
+    /**
+     * Verifica si se está editando una transacción existente y carga los datos.
+     * CORREGIDO: Implementación completa del modo edición.
      */
     private void verificarModoEdicion() {
-        // Aquí podrías recibir datos del Intent si es modo edición
-        // Por ahora está configurado solo para crear nuevas transacciones
-        modoEdicion = false;
+        // Recibir datos del Intent
+        if (getIntent().hasExtra("id_transaccion")) {
+            modoEdicion = true;
+
+            // Cargar datos recibidos para crear el objeto de edición
+            int idTransaccion = getIntent().getIntExtra("id_transaccion", -1);
+            double monto = getIntent().getDoubleExtra("monto", 0.0);
+            String descripcion = getIntent().getStringExtra("descripcion");
+            long fechaMillis = getIntent().getLongExtra("fecha", new Date().getTime());
+            String tipo = getIntent().getStringExtra("tipo");
+            int idCategoria = getIntent().getIntExtra("id_categoria", -1);
+
+            // Crear objeto Transaccion con los datos para poder actualizarlo luego
+            transaccionEditar = new Transaccion(idTransaccion, monto, descripcion, new Date(fechaMillis), tipo, idCategoria);
+
+            // Poblar campos
+            etMonto.setText(Formatos.formatearNumero(monto));
+            etDescripcion.setText(descripcion);
+            fechaSeleccionada = new Date(fechaMillis);
+            tvFechaSeleccionada.setText(Formatos.formatearFecha(fechaSeleccionada));
+
+            if (tipo.equals("Ingreso")) {
+                rbIngreso.setChecked(true);
+            } else {
+                rbGasto.setChecked(true);
+            }
+
+            if (getSupportActionBar() != null) {
+                getSupportActionBar().setTitle("Editar Transacción");
+            }
+        } else {
+            modoEdicion = false;
+            if (getSupportActionBar() != null) {
+                getSupportActionBar().setTitle("Nueva Transacción");
+            }
+        }
     }
 
     /**
@@ -143,7 +209,10 @@ public class RegistrarTransaccionActivity extends AppCompatActivity {
                 this,
                 (view, year, month, dayOfMonth) -> {
                     Calendar nuevaFecha = Calendar.getInstance();
-                    nuevaFecha.set(year, month, dayOfMonth);
+                    // Preservar la hora actual para evitar problemas con la base de datos
+                    Calendar horaActual = Calendar.getInstance();
+                    nuevaFecha.set(year, month, dayOfMonth, horaActual.get(Calendar.HOUR_OF_DAY), horaActual.get(Calendar.MINUTE));
+
                     fechaSeleccionada = nuevaFecha.getTime();
                     tvFechaSeleccionada.setText(Formatos.formatearFecha(fechaSeleccionada));
                 },
@@ -159,10 +228,12 @@ public class RegistrarTransaccionActivity extends AppCompatActivity {
      * Filtra las categorías según el tipo seleccionado
      */
     private void filtrarCategoriasPorTipo() {
+        // Obtenemos el tipo seleccionado
         String tipoSeleccionado = rbIngreso.isChecked() ? "Ingreso" : "Gasto";
 
         new Thread(() -> {
             List<Categoria> categoriasFiltradas = consultasSQL.obtenerCategoriasPorTipo(tipoSeleccionado);
+            listaCategorias = categoriasFiltradas; // Actualizar lista principal
 
             runOnUiThread(() -> {
                 ArrayAdapter<Categoria> adapter = new ArrayAdapter<>(
@@ -177,7 +248,8 @@ public class RegistrarTransaccionActivity extends AppCompatActivity {
     }
 
     /**
-     * Guarda la transacción en la base de datos
+     * Guarda la transacción en la base de datos (Insertar o Actualizar)
+     * CORREGIDO: Lógica para manejar la actualización.
      */
     private void guardarTransaccion() {
         // Validar campos
@@ -191,7 +263,7 @@ public class RegistrarTransaccionActivity extends AppCompatActivity {
         String tipo = rbIngreso.isChecked() ? "Ingreso" : "Gasto";
         Categoria categoriaSeleccionada = (Categoria) spinnerCategoria.getSelectedItem();
 
-        // Crear objeto Transaccion
+        // Crear objeto Transaccion base
         Transaccion transaccion = new Transaccion(
                 monto,
                 descripcion,
@@ -200,9 +272,17 @@ public class RegistrarTransaccionActivity extends AppCompatActivity {
                 categoriaSeleccionada.getIdCategoria()
         );
 
-        // Guardar en segundo plano
         new Thread(() -> {
-            boolean resultado = consultasSQL.insertarTransaccion(transaccion);
+            boolean resultado;
+
+            if (modoEdicion) {
+                // Modo edición: Asignar ID y actualizar
+                transaccion.setIdTransaccion(transaccionEditar.getIdTransaccion());
+                resultado = consultasSQL.actualizarTransaccion(transaccion);
+            } else {
+                // Modo inserción: Insertar nueva transacción
+                resultado = consultasSQL.insertarTransaccion(transaccion);
+            }
 
             runOnUiThread(() -> {
                 if (resultado) {
@@ -229,11 +309,17 @@ public class RegistrarTransaccionActivity extends AppCompatActivity {
             return false;
         }
 
-        if (spinnerCategoria.getSelectedItem() == null) {
+        if (spinnerCategoria.getAdapter() == null || spinnerCategoria.getSelectedItem() == null) {
             Toast.makeText(this, "Seleccione una categoría", Toast.LENGTH_SHORT).show();
             return false;
         }
 
+        return true;
+    }
+
+    @Override
+    public boolean onSupportNavigateUp() {
+        finish();
         return true;
     }
 }

@@ -12,7 +12,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.fincontrol.R;
-import com.example.fincontrol.adapters.TransaccionesAdapter;
+import com.example.fincontrol.adapters.TransaccionesAdapter; // Usando el nombre corregido
 import com.example.fincontrol.db.ConsultasSQL;
 import com.example.fincontrol.models.Transaccion;
 
@@ -29,6 +29,7 @@ public class HistorialActivity extends AppCompatActivity {
 
     private ConsultasSQL consultasSQL;
     private List<Transaccion> listaTransacciones;
+    // Asumiendo que el archivo se ha renombrado a TransaccionesAdapter.java
     private TransaccionesAdapter adapter;
 
     @Override
@@ -78,15 +79,13 @@ public class HistorialActivity extends AppCompatActivity {
         adapter.setOnItemClickListener(new TransaccionesAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(Transaccion transaccion) {
-                // Aquí podrías abrir una activity para editar la transacción
-                Toast.makeText(HistorialActivity.this,
-                        "Click en: " + transaccion.getDescripcion(),
-                        Toast.LENGTH_SHORT).show();
+                // Al hacer click, muestra el diálogo de opciones para editar/eliminar
+                mostrarDialogoOpciones(transaccion);
             }
 
             @Override
             public void onItemLongClick(Transaccion transaccion) {
-                // Mostrar opciones para eliminar
+                // Mantiene el diálogo de opciones también para LongClick
                 mostrarDialogoOpciones(transaccion);
             }
         });
@@ -139,7 +138,7 @@ public class HistorialActivity extends AppCompatActivity {
                 .setItems(opciones, (dialog, which) -> {
                     if (which == 0) {
                         // Editar
-                        editarTransaccion(transaccion);
+                        editarTransaccion(transaccion); // Llamada al método corregido
                     } else {
                         // Eliminar
                         mostrarDialogoEliminar(transaccion);
@@ -150,10 +149,21 @@ public class HistorialActivity extends AppCompatActivity {
 
     /**
      * Abre la activity para editar la transacción
+     * CORREGIDO: Se pasa toda la información de la transacción al intent.
      */
     private void editarTransaccion(Transaccion transaccion) {
-        // Aquí implementarías la lógica para editar
-        Toast.makeText(this, "Función de editar en desarrollo", Toast.LENGTH_SHORT).show();
+        Intent intent = new Intent(this, RegistrarTransaccionActivity.class);
+
+        // Pasar todos los datos de la transacción para el modo edición
+        intent.putExtra("id_transaccion", transaccion.getIdTransaccion());
+        intent.putExtra("monto", transaccion.getMonto());
+        intent.putExtra("descripcion", transaccion.getDescripcion());
+        // Pasamos la fecha como long (milisegundos) que es más seguro entre Activities
+        intent.putExtra("fecha", transaccion.getFecha().getTime());
+        intent.putExtra("tipo", transaccion.getTipo());
+        intent.putExtra("id_categoria", transaccion.getIdCategoria());
+
+        startActivity(intent);
     }
 
     /**
@@ -189,6 +199,7 @@ public class HistorialActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        // Recargar transacciones cada vez que volvemos a esta actividad
         cargarTransacciones();
     }
 
